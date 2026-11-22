@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="《SIGNAL ZERO》核心概念、玩法循环、地图系统、技术方案与完整开发路线。">
+    <meta name="theme-color" content="#080d12">
+    <title>SIGNAL ZERO — 开发档案馆</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="scroll-progress" aria-hidden="true"><span></span></div>
+
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="SIGNAL ZERO 首页">
+        <span class="brand-mark" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+        <span>
+          <strong>SIGNAL ZERO</strong>
+          <small>DEVELOPMENT DOSSIER</small>
+        </span>
+      </a>
+      <nav class="desktop-nav" aria-label="页面导航">
+        <a href="#concept">概念</a>
+        <a href="#loop">循环</a>
+        <a href="#map">地图</a>
+        <a href="#tech">技术</a>
+        <a href="#roadmap">开发流程</a>
+        <a href="#scope">范围</a>
+      </nav>
+      <span class="version-badge">DOSSIER 0.1</span>
+    </header>
+
+    <main id="top">
+      <section class="hero section-shell">
+        <div class="hero-copy">
+          <div class="eyebrow"><span></span> ORIGINAL GAME CONCEPT / PC FIRST</div>
+          <h1>
+            在失联基地里，
+            <em>杀出一条不断变化的生路。</em>
+          </h1>
+          <p class="hero-lead">
+            《SIGNAL ZERO》是一款以《孤胆枪手》式群怪火力为核心的
+            <strong>3D 俯视角 Roguelite 清怪射击游戏</strong>。
+            用 DNF 式房间地图组织路线，用《重生细胞》式跑局制造变化，
+            用《合金弹头》式爆炸与 Boss 演出放大爽感。
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#roadmap">查看完整开发流程</a>
+            <a class="button button-ghost" href="#map">探索房间地图</a>
+          </div>
+          <dl class="hero-stats" aria-label="核心规格">
+            <div><dt>视角</dt><dd>3D / 固定俯视 2.5D</dd></div>
+            <div><dt>单局</dt><dd>约 25 分钟</dd></div>
+            <div><dt>引擎</dt><dd>Godot 4.7.2</dd></div>
+            <div><dt>平台</dt><dd>Windows PC</dd></div>
+          </dl>
+        </div>
+
+        <div class="hero-visual" aria-label="俯视角战斗概念示意">
+          <div class="scanline"></div>
+          <div class="hud hud-top">
+            <span>ZONE 02 / ASSEMBLY</span>
+            <span class="hud-live">LIVE FEED</span>
+          </div>
+          <div class="hud hud-bottom">
+            <span>HP 82</span>
+            <span>AMMO 24 / 96</span>
+            <span>WAVE 03</span>
+          </div>
+          <div class="arena">
+            <div class="arena-floor"></div>
+            <div class="arena-wall wall-left"></div>
+            <div class="arena-wall wall-right"></div>
+            <div class="arena-door door-left">ENTRY</div>
+            <div class="arena-door door-right">LOCKED</div>
+            <div class="cover cover-a"></div>
+            <div class="cover cover-b"></div>
+            <div class="cover cover-c"></div>
+            <div class="hero-unit">
+              <span class="hero-head"></span>
+              <span class="hero-body"></span>
+              <span class="aim-line"></span>
+            </div>
+            <span class="enemy enemy-a"></span>
+            <span class="enemy enemy-b"></span>
+            <span class="enemy enemy-c"></span>
+            <span class="enemy enemy-d"></span>
+            <span class="shot shot-a"></span>
+            <span class="shot shot-b"></span>
+            <span class="blast"></span>
+          </div>
+          <div class="visual-caption">
+            <span class="caption-index">A</span>
+            固定镜头保持群怪、掩体和弹道同时可读
+          </div>
+        </div>
+      </section>
+
+      <section class="ticker" aria-hidden="true">
+        <div>
+          <span>ROOM-BASED RUN</span><i></i>
+          <span>SWARM COMBAT</span><i></i>
+          <span>WEAPON BUILDS</span><i></i>
+          <span>DESTRUCTIBLE COVER</span><i></i>
+          <span>AREA BOSSES</span><i></i>
+          <span>PERMADEATH</span><i></i>
+          <span>ROOM-BASED RUN</span><i></i>
+          <span>SWARM COMBAT</span><i></i>
+        </div>
+      </section>
+
+      <section class="section-shell section-block" id="concept">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker">01 / CORE IDEA</span>
+            <h2>不是简单拼接，而是四种设计DNA各司其职</h2>
+          </div>
+          <p>
+            主视角只保留一种。参考游戏不直接决定画面，而是分别负责战斗、地图、结构与演出。
+          </p>
+        </div>
+
+        <div class="dna-grid">
+          <article class="dna-card dna-primary">
+            <div class="dna-top"><span>65%</span><small>PRIMARY</small></div>
+            <h3>群怪火力</h3>
+            <p>俯视视角、持续射击、武器切换、成批敌人和封闭房间。玩家始终能读到威胁、掩体和弹道。</p>
+            <div class="dna-tag">ALIEN SHOOTER</div>
+          </article>
+          <article class="dna-card">
+            <div class="dna-top"><span>25%</span><small>STRUCTURE</small></div>
+            <h3>随机跑局</h3>
+            <p>分支路线、房间组合、单局构筑与永久死亡。每次进入基地，风险与奖励顺序都会变化。</p>
+            <div class="dna-tag">DEAD CELLS</div>
+          </article>
+          <article class="dna-card">
+            <div class="dna-top"><span>10%</span><small>SPECTACLE</small></div>
+            <h3>夸张演出</h3>
+            <p>大爆炸、场景破坏、特色武器、巨型 Boss 和短暂载具事件，强化街机式记忆点。</p>
+            <div class="dna-tag">METAL SLUG</div>
+          </article>
+          <article class="dna-card">
+            <div class="dna-top"><span>MAP</span><small>NAVIGATION</small></div>
+            <h3>房间拓扑</h3>
+            <p>节点、门、分叉、清房解锁和小地图。空间结构一眼能懂，路线选择始终有代价。</p>
+            <div class="dna-tag">DNF</div>
+          </article>
+        </div>
+
+        <div class="promise-grid">
+          <div class="promise">
+            <span class="promise-number">01</span>
+            <h3>十秒内就要开火</h3>
+            <p>从按下开始到第一次命中，不放长过场。基地的威胁用空间和声音介绍。</p>
+          </div>
+          <div class="promise">
+            <span class="promise-number">02</span>
+            <h3>每扇门都是选择</h3>
+            <p>精英房换高收益，商店房换稳定，风险房换稀有武器。路线本身就是构筑。</p>
+          </div>
+          <div class="promise">
+            <span class="promise-number">03</span>
+            <h3>死亡保留知识</h3>
+            <p>失败损失本轮装备，但保留研究数据。下一轮解锁的是选择，而不是单纯攻击力。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-shell section-block loop-section" id="loop">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker">02 / GAMEPLAY LOOP</span>
+            <h2>从一枪到一整局，循环必须层层推进</h2>
+          </div>
+          <p>每一层循环都给上一层制造新的决策，不靠重复刷数字维持时长。</p>
+        </div>
+
+        <div class="loop-grid">
+          <article class="loop-card">
+            <span class="loop-time">0–8 秒</span>
+            <h3>进入与识别</h3>
+            <p>识别房间类型、出口、敌人来源和可破坏物。</p>
+            <div class="loop-meter"><span style="--value: 20%"></span></div>
+          </article>
+          <article class="loop-card">
+            <span class="loop-time">8–45 秒</span>
+            <h3>移动与清怪</h3>
+            <p>瞄准、射击、冲刺、换弹，在敌群中维持移动。</p>
+            <div class="loop-meter"><span style="--value: 55%"></span></div>
+          </article>
+          <article class="loop-card">
+            <span class="loop-time">45–70 秒</span>
+            <h3>清场与拾取</h3>
+            <p>决定带走什么、丢掉什么，以及是否冒险探索。</p>
+            <div class="loop-meter"><span style="--value: 75%"></span></div>
+          </article>
+          <article class="loop-card">
+            <span class="loop-time">约 25 分钟</span>
+            <h3>整局构筑</h3>
+            <p>组合武器、改装和路线，挑战区域 Boss。</p>
+            <div class="loop-meter"><span style="--value: 100%"></span></div>
+          </article>
+        </div>
+
+        <div class="loop-track" aria-label="核心游戏循环">
+          <div class="track-node"><span>01</span><strong>进入房间</strong><small>读取路线与威胁</small></div>
+          <div class="track-line"></div>
+          <div class="track-node"><span>02</span><strong>压制敌群</strong><small>移动、瞄准、闪避</small></div>
+          <div class="track-line"></div>
+          <div class="track-node"><span>03</span><strong>清房解锁</strong><small>门与奖励出现</small></div>
+          <div class="track-line"></div>
+          <div class="track-node"><span>04</span><strong>选择路线</strong><small>风险与收益</small></div>
+          <div class="track-line"></div>
+          <div class="track-node boss"><span>05</span><strong>区域 Boss</strong><small>检验整局构筑</small></div>
+          <div class="track-line"></div>
+          <div class="track-node"><span>06</span><strong>永久成长</strong><small>研究数据保留</small></div>
+        </div>
+      </section>
+
+      <section class="section-shell section-block map-section" id="map">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker">03 / DNF-STYLE MAP</span>
+            <h2>房间地图不是装饰，而是玩法结构</h2>
+          </div>
+          <p>点击节点查看房间职责。每张跑局图必须保证能到达 Boss，并至少存在一次有代价的分叉。</p>
+        </div>
+
+        <div class="map-workbench">
+          <div class="map-board" aria-label="示例房间地图">
+            <div class="map-grid" aria-hidden="true"></div>
+            <svg class="map-links" viewBox="0 0 760 510" aria-hidden="true">
+              <path d="M110 255 L230 255 L230 135 L350 135"/>
+              <path d="M230 255 L230 380 L350 380"/>
+              <path d="M350 135 L470 135 L470 255"/>
+              <path d="M350 380 L470 380 L470 255"/>
+              <path d="M470 255 L590 255"/>
+              <path d="M350 135 L350 255"/>
+              <path d="M350 255 L350 380"/>
+              <path d="M590 255 L680 255"/>
+            </svg>
+            <button class="map-node start active" style="--x: 14.5%; --y: 50%" data-room="start" aria-label="入口房间">
+              <span class="node-icon">▶</span><strong>入口</strong><small>START</small>
+            </button>
+            <button class="map-node combat" style="--x: 30%; --y: 26%" data-room="combat" aria-label="普通战斗房间">
+              <span class="node-icon">×</span><strong>战斗</strong><small>COMBAT</small>
+            </button>
+            <button class="map-node elite" style="--x: 30%; --y: 75%" data-room="elite" aria-label="精英房间">
+              <span class="node-icon">!</span><strong>精英</strong><small>ELITE</small>
+            </button>
+            <button class="map-node" style="--x: 46%; --y: 50%" data-room="junction" aria-label="分叉房间">
+              <span class="node-icon">◇</span><strong>分叉</strong><small>JUNCTION</small>
+            </button>
+            <button class="map-node reward" style="--x: 62%; --y: 26%" data-room="treasure" aria-label="宝箱房间">
+              <span class="node-icon">◆</span><strong>宝箱</strong><small>TREASURE</small>
+            </button>
+            <button class="map-node shop" style="--x: 62%; --y: 75%" data-room="shop" aria-label="商店房间">
+              <span class="node-icon">$</span><strong>商店</strong><small>SHOP</small>
+            </button>
+            <button class="map-node rest" style="--x: 77%; --y: 50%" data-room="rest" aria-label="休息房间">
+              <span class="node-icon">+</span><strong>改装</strong><small>REST</small>
+            </button>
+            <button class="map-node boss" style="--x: 90%; --y: 50%" data-room="boss" aria-label="Boss 房间">
+              <span class="node-icon">☠</span><strong>BOSS</strong><small>CLIMAX</small>
+            </button>
+            <div class="map-legend">
+              <span><i class="dot-start"></i>入口</span>
+              <span><i class="dot-combat"></i>战斗</span>
+              <span><i class="dot-special"></i>特殊</span>
+              <span><i class="dot-boss"></i>Boss</span>
+            </div>
+          </div>
+
+          <aside class="room-panel" aria-live="polite">
+            <div class="room-panel-top">
+              <span class="room-type">START NODE</span>
+              <span class="room-code">S-00</span>
+            </div>
+            <h3>入口房间</h3>
+            <p>安全教学空间。展示移动、瞄准和首个可破坏物，不放复杂敌人组合。</p>
+            <dl>
+              <div><dt>敌人</dt><dd>2 个低速近战单位</dd></div>
+              <div><dt>奖励</dt><dd>基础弹药与路线地图</dd></div>
+              <div><dt>出口</dt><dd>普通战斗 / 精英分支</dd></div>
+              <div><dt>验收</dt><dd>玩家 10 秒内完成首次射击</dd></div>
+            </dl>
+            <div class="room-gate"><span>SOFT-LOCK CHECK</span><strong>PASS</strong></div>
+          </aside>
+        </div>
+
+        <div class="map-rules">
+          <div><span>8–14</span><strong>每区域房间</strong></div>
+          <div><span>3–5</span><strong>主路径节点</strong></div>
+          <div><span>2–3</span><strong>可选分支</strong></div>
+          <div><span>1</span><strong>区域 Boss</strong></div>
+        </div>
+      </section>
+
+      <section class="section-shell section-block" id="tech">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker">04 / TECHNICAL BLUEPRINT</span>
+            <h2>“2.5D”不是含糊风格，是明确的工程约束</h2>
+          </div>
+          <p>画面使用 3D 资产，玩法发生在稳定地面平面，镜头固定为俯视 3/4 角度。</p>
+        </div>
+
+        <div class="tech-layout">
+          <div class="camera-diagram" aria-label="固定俯视镜头示意">
+            <div class="diagram-grid"></div>
+            <div class="camera-origin">CAMERA</div>
+            <div class="camera-cone"></div>
+            <div class="diagram-player">
+              <span></span>
+            </div>
+            <div class="axis axis-x">+X</div>
+            <div class="axis axis-z">+Z</div>
+            <div class="camera-angle">35°–45°</div>
+            <div class="diagram-label label-a">固定方向</div>
+            <div class="diagram-label label-b">平滑跟随</div>
+            <div class="diagram-label label-c">鼠标瞄准</div>
+          </div>
+
+          <div class="tech-notes">
+            <article class="tech-note">
+              <span>01</span>
+              <div><h3>Camera3D · 固定俯视角</h3><p>不允许玩家自由旋转。相机通过死区和插值跟随，保证大规模战斗的方向稳定。</p></div>
+            </article>
+            <article class="tech-note">
+              <span>02</span>
+              <div><h3>XZ 平面移动 · 8 方向</h3><p>角色在地面平面上移动，镜头射线转为瞄准点。3D 模型与 2D 操作逻辑分离。</p></div>
+            </article>
+            <article class="tech-note">
+              <span>03</span>
+              <div><h3>房间即场景 · 门即接口</h3><p>每个房间是独立场景；统一出生点、出口、刷怪组和奖励槽，方便手工设计与随机拼接。</p></div>
+            </article>
+            <article class="tech-note">
+              <span>04</span>
+              <div><h3>数据驱动 · 可验证地图</h3><p>房间图保存为 Resource。生成后检查可达性、分支数量和 Boss 路径，避免软锁。</p></div>
+            </article>
+          </div>
+        </div>
+
+        <div class="architecture">
+          <div class="arch-column">
+            <span class="arch-label">PRESENTATION</span>
+            <div>3D Environment</div>
+            <div>Character Animation</div>
+            <div>VFX / Lighting</div>
+            <div>HUD</div>
+          </div>
+          <div class="arch-arrows" aria-hidden="true">→</div>
+          <div class="arch-column arch-core">
+            <span class="arch-label">GAME CORE</span>
+            <div>Run Director</div>
+            <div>Room Graph</div>
+            <div>Encounter Manager</div>
+            <div>Weapon / Damage Data</div>
+          </div>
+          <div class="arch-arrows" aria-hidden="true">→</div>
+          <div class="arch-column">
+            <span class="arch-label">EVIDENCE</span>
+            <div>Headless Tests</div>
+            <div>Runtime Capture</div>
+            <div>Performance Profile</div>
+            <div>Windows Build</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-shell section-block art-section">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker">05 / ART DIRECTION</span>
+            <h2>工业科幻，但必须有街机式的清晰与爆发</h2>
+          </div>
+          <p>任何概念图都必须先通过“游戏尺寸可读性”检查，再进入 Blender 制作。</p>
+        </div>
+
+        <div class="art-grid">
+          <div class="palette-card">
+            <span class="arch-label">PALETTE ROLES</span>
+            <div class="swatches">
+              <div><span style="--swatch:#080d12"></span><small>VOID</small></div>
+              <div><span style="--swatch:#17232d"></span><small>STEEL</small></div>
+              <div><span style="--swatch:#ff6a1a"></span><small>WEAPON</small></div>
+              <div><span style="--swatch:#a5ff51"></span><small>HAZARD</small></div>
+              <div><span style="--swatch:#e7edf1"></span><small>SIGNAL</small></div>
+            </div>
+          </div>
+          <div class="style-card">
+            <span class="arch-label">FORM LANGUAGE</span>
+            <h3>粗轮廓 · 大块硬表面 · 低细节密度</h3>
+            <p>角色和敌人靠姿态与轮廓区分。场景用大面积结构、警示色和设备轮廓构成，而不是铺满小装饰。</p>
+            <div class="style-bars">
+              <span>轮廓 <i style="--bar:90%"></i></span>
+              <span>写实 <i style="--bar:38%"></i></span>
+              <span>卡通 <i style="--bar:55%"></i></span>
+              <span>细节 <i style="--bar:32%"></i></span>
+            </div>
+          </div>
+          <div class="vfx-card">
+            <span class="arch-label">COMBAT READABILITY</span>
+            <div class="vfx-orbit"><i></i><i></i><i></i><span>HERO</span></div>
+            <ul>
+              <li>橙色：玩家输出</li>
+              <li>绿色：敌方危险物</li>
+              <li>白色：可交互提示</li>
+              <li>红色：首领致命预警</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-shell section-block" id="roadmap">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker">06 / DEVELOPMENT PIPELINE</span>
+            <h2>完整开发流程：每个阶段都有可运行的证据</h2>
+          </div>
+          <p>不以“文件已创建”作为完成标准。每阶段都必须通过运行、截图、测试或构建证据。</p>
+        </div>
+
+        <div class="roadmap-layout">
+          <div class="phase-rail" role="tablist" aria-label="开发阶段">
+            <button class="phase-button active" role="tab" aria-selected="true" data-phase="0">
+              <span>00</span><div><strong>方向锁定</strong><small>CONCEPT LOCK</small></div><i></i>
+            </button>
+            <button class="phase-button" role="tab" aria-selected="false" data-phase="1">
+              <span>01</span><div><strong>房间灰盒</strong><small>BLOCKOUT</small></div><i></i>
+            </button>
+            <button class="phase-button" role="tab" aria-selected="false" data-phase="2">
+              <span>02</span><div><strong>战斗切片</strong><small>VERTICAL SLICE</small></div><i></i>
+            </button>
+            <button class="phase-button" role="tab" aria-selected="false" data-phase="3">
+              <span>03</span><div><strong>角色管线</strong><small>ASSET PIPELINE</small></div><i></i>
+            </button>
+            <button class="phase-button" role="tab" aria-selected="false" data-phase="4">
+              <span>04</span><div><strong>跑局系统</strong><small>RUN SYSTEM</small></div><i></i>
+            </button>
+            <button class="phase-button" role="tab" aria-selected="false" data-phase="5">
+              <span>05</span><div><strong>内容制作</strong><small>CONTENT PASS</small></div><i></i>
+            </button>
+            <button class="phase-button" role="tab" aria-selected="false" data-phase="6">
+              <span>06</span><div><strong>打磨验收</strong><small>POLISH + QA</small></div><i></i>
+            </button>
+            <button class="phase-button" role="tab" aria-selected="false" data-phase="7">
+              <span>07</span><div><strong>公开发布</strong><small>SHIP</small></div><i></i>
+            </button>
+          </div>
+
+          <article class="phase-detail" aria-live="polite">
+            <div class="phase-detail-top">
+              <span class="phase-status" data-phase-status>IN PROGRESS / NEXT</span>
+              <span class="phase-count" data-phase-count>PHASE 00</span>
+            </div>
+            <h3 data-phase-title>方向锁定</h3>
+            <p class="phase-summary" data-phase-summary>
+              把三种参考游戏收敛为一个主视角、一套循环和一个可测量范围，并建立后续所有资产与代码的验收标准。
+            </p>
+            <div class="phase-columns">
+              <div>
+                <span class="mini-label">DELIVERABLES</span>
+                <ul data-phase-items>
+                  <li>一页核心 PRD</li>
+                  <li>四种视觉方向概念图</li>
+                  <li>技术原型约束与性能目标</li>
+                  <li>MVP 功能清单</li>
+                </ul>
+              </div>
+              <div>
+                <span class="mini-label">EXIT GATE</span>
+                <ul data-phase-gates>
+                  <li>能够用一句话复述游戏</li>
+                  <li>确认 3D 固定俯视 2.5D</li>
+                  <li>明确第一版不做什么</li>
+                  <li>视觉目标通过游戏尺寸检查</li>
+                </ul>
+              </div>
+            </div>
+            <div class="phase-progress">
+              <span>PROJECT SIGNAL</span>
+              <div><i data-phase-progress></i></div>
+              <strong data-phase-progress-label>CONCEPT</strong>
+            </div>
+          </article>
+        </div>
+
+        <div class="delivery-line">
+          <div><span>STAGE GATE</span><strong>Run</strong></div>
+          <i>→</i>
+          <div><span>STAGE GATE</span><strong>Capture</strong></div>
+          <i>→</i>
+          <div><span>STAGE GATE</span><strong>Test</strong></div>
+          <i>→</i>
+          <div><span>STAGE GATE</span><strong>Review</strong></div>
+          <i>→</i>
+          <div><span>STAGE GATE</span><strong>Advance</strong></div>
+        </div>
+      </section>
+
+      <section class="section-shell section-block scope-section" id="scope">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker">07 / SHIP A SMALLER COMPLETE GAME</span>
+            <h2>MVP 的“完整”，不是内容无限，而是闭环完整</h2>
+          </div>
+          <p>第一版必须能从主菜单进入、完成一次跑局、击败 Boss、失败或胜利并保存进度。</p>
+        </div>
+
+        <div class="scope-board">
+          <div class="scope-column scope-must">
+            <div class="scope-title"><span>MUST SHIP</span><strong>完整性底线</strong></div>
+            <ul>
+              <li>主菜单、暂停、设置、退出</li>
+              <li>玩家移动、瞄准、闪避、射击</li>
+              <li>4 类武器与基础改装</li>
+              <li>5 类普通敌人和 1 个 Boss</li>
+              <li>3 个区域、12–18 个房间</li>
+              <li>清房开门与分支地图</li>
+              <li>单局构筑与永久研究数据</li>
+              <li>存档、胜负流程和 Windows 构建</li>
+            </ul>
+          </div>
+          <div class="scope-column scope-later">
+            <div class="scope-title"><span>AFTER 1.0</span><strong>可扩展内容</strong></div>
+            <ul>
+              <li>更多角色与武器分支</li>
+              <li>第二个 Boss 和隐藏区域</li>
+              <li>挑战模式与每日种子</li>
+              <li>手柄与完整键位重映射</li>
+              <li>Steam 成就和云存档</li>
+              <li>更多语言与辅助选项</li>
+            </ul>
+          </div>
+          <div class="scope-column scope-cut">
+            <div class="scope-title"><span>NOT IN MVP</span><strong>主动砍掉</strong></div>
+            <ul>
+              <li>联机与多人合作</li>
+              <li>开放世界</li>
+              <li>完整载具关卡</li>
+              <li>多套主视角切换</li>
+              <li>复杂剧情分支</li>
+              <li>手机端首发</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="done-grid">
+          <article>
+            <span>FUNCTIONAL</span>
+            <h3>能完整通关</h3>
+            <p>从启动到胜利/失败无断链，存档可以回到正确状态。</p>
+          </article>
+          <article>
+            <span>READABLE</span>
+            <h3>画面读得懂</h3>
+            <p>主角、敌人、弹道、危险区和出口在真实游戏画面中清晰可辨。</p>
+          </article>
+          <article>
+            <span>MEASURABLE</span>
+            <h3>指标能验收</h3>
+            <p>60 FPS 目标、零脚本错误、地图无软锁、构建可启动。</p>
+          </article>
+          <article>
+            <span>ORIGINAL</span>
+            <h3>资产可发布</h3>
+            <p>不复制受保护角色与素材，逐项记录 AI 内容和第三方许可证。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-shell decision-section">
+        <div>
+          <span class="section-kicker">CURRENT DECISION</span>
+          <h2>核心方向已经锁定：先证明一场 90 秒战斗，再证明一局 25 分钟跑局。</h2>
+        </div>
+        <div class="decision-stamp">
+          <span>APPROVED FOR PROTOTYPE</span>
+          <strong>2.5D / FIXED CAMERA</strong>
+          <small>ROOM GRAPH · SWARM COMBAT · ROGUELITE</small>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <strong>SIGNAL ZERO</strong>
+        <span>Original game concept dossier</span>
+      </div>
+      <p>概念阶段材料。所有参考作品仅用于说明设计方向，不使用其角色、商标或素材。</p>
+      <a href="#top">回到顶部 ↑</a>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
