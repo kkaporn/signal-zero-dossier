@@ -289,7 +289,7 @@ document.addEventListener("keydown", (event) => {
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 if (!reduceMotion) {
   const reveals = document.querySelectorAll(
-    ".dna-card, .promise, .loop-card, .map-workbench, .tech-layout, .art-grid > *, .roadmap-layout, .scope-board, .done-grid article"
+    ".dna-card, .promise, .loop-card, .map-workbench, .tech-layout, .concept-preview, .art-grid > *, .asset-feature, .asset-card, .roadmap-layout, .scope-board, .done-grid article"
   );
   reveals.forEach((element) => {
     element.style.opacity = "0";
